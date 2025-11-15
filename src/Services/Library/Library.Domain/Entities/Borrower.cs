@@ -12,6 +12,12 @@ namespace Library.Domain.Entities
 
         public Borrower(string name, string email)
         {
+            if (string.IsNullOrWhiteSpace(name))
+                throw new ArgumentException("Name is required.");
+
+            if (string.IsNullOrWhiteSpace(email))
+                throw new ArgumentException("Email is required.");
+
             Name = name;
             Email = email;
         }

@@ -7,11 +7,24 @@ using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Detect environment for tests
+var isTesting = builder.Environment.IsEnvironment("Testing");
+
 var configuration = builder.Configuration;
 
-// DbContext
-builder.Services.AddDbContext<LibraryDbContext>(options =>
-    options.UseSqlServer(configuration.GetConnectionString("LibraryDb")));
+// DbContext (only SQL Server in non-testing env)
+if (!isTesting)
+{
+    builder.Services.AddDbContext<LibraryDbContext>(options =>
+        options.UseSqlServer(configuration.GetConnectionString("LibraryDb")));
+}
+else
+{
+    // For WebApplicationFactory override (no provider here)
+    builder.Services.AddDbContext<LibraryDbContext>(options =>
+        options.UseInMemoryDatabase("TestDb"));
+}
+
 
 // Repositories
 builder.Services.AddScoped<IBookRepository, BookRepository>();
@@ -34,8 +47,9 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
+if (!isTesting)
 {
+    using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<LibraryDbContext>();
     await db.Database.MigrateAsync();
     await SeedData.InitializeAsync(db);
@@ -55,3 +69,6 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+// Required for tests
+public partial class Program { }
