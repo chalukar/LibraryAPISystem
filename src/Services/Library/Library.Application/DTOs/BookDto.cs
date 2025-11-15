@@ -6,5 +6,5 @@ using System.Threading.Tasks;
 
 namespace Library.Application.DTOs
 {
-    public record BookDto(Guid Id, string Title, string Author, int Pages, string Isbn, int TotalCopies);
+    public record BookDto(Guid Id, string Title, string Author, string Isbn, int Pages, int TotalCopies, int AvailableCopies);
 }

@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+option csharp_namespace = "Library.gRPC";
+
+package library;
+
+message Empty {}
+
+message BookRequest {
+  string id = 1;
+}
+
+message BookResponse {
+  string id = 1;
+  string title = 2;
+  string author = 3;
+  string isbn = 4;
+  int32 pages = 5;
+  int32 totalCopies = 6;
+  int32 availableCopies = 7;
+}
+
+message GetAllBooksResponse {
+  repeated BookResponse books = 1;
+}
+
+service LibraryService {
+  rpc GetAllBooks (Empty) returns (GetAllBooksResponse);
+  rpc GetBookById (BookRequest) returns (BookResponse);
+}

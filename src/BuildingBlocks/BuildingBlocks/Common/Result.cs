@@ -26,14 +26,13 @@ namespace BuildingBlocks.Common
     {
         public T? Value { get; }
 
-        private Result(bool isSuccess, T? value, string? error)
+        private Result(bool isSuccess, string? error, T? value)
             : base(isSuccess, error)
         {
             Value = value;
         }
 
-        public static Result<T> Success(T value) => new(true, value, null);
-
-        public static new Result<T> Failure(string error) => new(false, default, error);
+        public static Result<T> Success(T value) => new(true, null, value);
+        public static new Result<T> Failure(string error) => new(false, error, default);
     }
 }

@@ -1,5 +1,4 @@
-﻿using Library.Domain.Exceptions;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,34 +8,38 @@ namespace Library.Domain.Entities
 {
     public class LendingRecord
     {
+        private LendingRecord() { }
+
         public Guid Id { get; private set; } = Guid.NewGuid();
         public Guid BookId { get; private set; }
         public Guid BorrowerId { get; private set; }
         public DateTime BorrowedAt { get; private set; }
         public DateTime? ReturnedAt { get; private set; }
 
-        public LendingRecord(Guid bookId, Guid borrowerId, DateTime borrowedAt)
+        public Book Book { get; private set; } = default!;
+        public Borrower Borrower { get; private set; } = default!;
+
+        public LendingRecord(Book book, Borrower borrower)
         {
-            BookId = bookId;
-            BorrowerId = borrowerId;
-            BorrowedAt = borrowedAt;
+            Book = book;
+            Borrower = borrower;
+            BookId = book.Id;
+            BorrowerId = borrower.Id;
+            BorrowedAt = DateTime.UtcNow;
         }
 
-        public void MarkReturned(DateTime returnedAt)
+        public void Return()
         {
-            if (ReturnedAt is not null)
-                throw new DomainException("This lending record is already returned.");
+            if (ReturnedAt != null)
+                throw new InvalidOperationException("Already returned.");
 
-            if (returnedAt < BorrowedAt)
-                throw new DomainException("Return date cannot be before borrow date.");
-
-            ReturnedAt = returnedAt;
+            ReturnedAt = DateTime.UtcNow;
         }
 
-        public int GetBorrowDurationDays()
+        public double? GetReadingDays()
         {
-            var endDate = ReturnedAt ?? DateTime.UtcNow;
-            return (endDate.Date - BorrowedAt.Date).Days + 1;
+            if (ReturnedAt == null) return null;
+            return (ReturnedAt.Value - BorrowedAt).TotalDays;
         }
     }
 }

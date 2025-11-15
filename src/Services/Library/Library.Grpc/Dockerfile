@@ -12,19 +12,19 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["Services/Library/Library.Grpc/Library.Grpc.csproj", "Services/Library/Library.Grpc/"]
-RUN dotnet restore "./Services/Library/Library.Grpc/Library.Grpc.csproj"
+COPY ["Services/Library/Library.gRPC/Library.gRPC.csproj", "Services/Library/Library.gRPC/"]
+RUN dotnet restore "./Services/Library/Library.gRPC/Library.gRPC.csproj"
 COPY . .
-WORKDIR "/src/Services/Library/Library.Grpc"
-RUN dotnet build "./Library.Grpc.csproj" -c $BUILD_CONFIGURATION -o /app/build
+WORKDIR "/src/Services/Library/Library.gRPC"
+RUN dotnet build "./Library.gRPC.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # This stage is used to publish the service project to be copied to the final stage
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./Library.Grpc.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./Library.gRPC.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 # This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Library.Grpc.dll"]
+ENTRYPOINT ["dotnet", "Library.gRPC.dll"]
