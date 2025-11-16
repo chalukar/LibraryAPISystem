@@ -1,0 +1,44 @@
+name: Library API CI
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Initialize SQL LocalDB
+        run: |
+          sqllocaldb create "LibraryTest" -s
+          sqlcmd -S "(localdb)\LibraryTest" -Q "IF DB_ID('LibraryDb_Test') IS NULL CREATE DATABASE LibraryDb_Test;"
+
+      - name: Set Integration Test DB Connection String
+        run: |
+          echo "ConnectionStrings__IntegrationTestDb=Server=(localdb)\LibraryTest;Database=LibraryDb_Test;Trusted_Connection=True;" >> $env:GITHUB_ENV
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build solution
+        run: dotnet build --no-restore --configuration Release
+
+      - name: Run all tests with coverage
+        run: dotnet test --no-build --configuration Release --collect:"XPlat Code Coverage"
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report
+          path: "**/TestResults/*/coverage.cobertura.xml"
