@@ -40,5 +40,5 @@ steps:
 - name: Upload coverage report
   uses: actions/upload-artifact@v3
     with:
-      name: coverage-report
+      name: test-coverage-report
       path: "**/TestResults/*/coverage.cobertura.xml"
