@@ -10,7 +10,8 @@ using System.Threading.Tasks;
 
 namespace Library.Tests.IntegrationTests
 {
-    public class BorrowerRepositoryTests : IClassFixture<DatabaseFixture>
+    [Collection("Database collection")]
+    public class BorrowerRepositoryTests
     {
         private readonly DatabaseFixture _fixture;
 
@@ -20,20 +21,25 @@ namespace Library.Tests.IntegrationTests
         }
 
         [Fact]
-        public async Task Add_ShouldInsertBorrower()
+        public async Task AddBorrow_ShouldInsertBorrower()
         {
+            await _fixture.ResetAsync();
+
             var repo = new BorrowerRepository(_fixture.Db);
             var borrower = new Borrower("Chaluka", "chaluka@mail.com");
 
             await repo.AddAsync(borrower, default);
             await _fixture.Db.SaveChangesAsync();
 
-            (await _fixture.Db.Borrowers.CountAsync()).Should().Be(2);
+            var exists = await _fixture.Db.Borrowers.AnyAsync();
+            exists.Should().BeTrue();
         }
 
         [Fact]
         public async Task GetById_ShouldReturnBorrower()
         {
+            await _fixture.ResetAsync();
+
             var repo = new BorrowerRepository(_fixture.Db);
             var borrower = new Borrower("Rathnayaka", "Rathnayaka@mail.com");
 

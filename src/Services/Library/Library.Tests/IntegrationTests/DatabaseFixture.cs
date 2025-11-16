@@ -1,30 +1,62 @@
 ﻿using Library.Infrastructure.Data;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
+using Respawn;
+using Respawn.Graph;
 
 namespace Library.Tests.IntegrationTests
 {
-    public class DatabaseFixture : IDisposable
+    public class DatabaseFixture : IAsyncLifetime
     {
-        public LibraryDbContext Db { get; }
+        private readonly string _connectionString;
+
+        public LibraryDbContext Db { get; private set; } = default!;
+        public Respawner Respawner { get; private set; } = default!;
 
         public DatabaseFixture()
         {
+            // Load configuration from appsettings.Testing.json
+            var config = new ConfigurationBuilder()
+               .SetBasePath(AppContext.BaseDirectory)
+               .AddJsonFile("appsettings.Testing.json", optional: false)
+               .AddEnvironmentVariables()
+               .Build();
+
+            _connectionString = config.GetConnectionString("IntegrationTestDb")
+                ?? throw new InvalidOperationException("Missing IntegrationTestDb connection string.");
+        }
+
+        public async Task InitializeAsync()
+        {
             var options = new DbContextOptionsBuilder<LibraryDbContext>()
-                .UseInMemoryDatabase("TestDb_" + Guid.NewGuid())
+                .UseSqlServer(_connectionString)
                 .Options;
 
             Db = new LibraryDbContext(options);
-            Db.Database.EnsureCreated();
+
+            await Db.Database.MigrateAsync();
+
+            using var conn = new SqlConnection(_connectionString);
+            await conn.OpenAsync();
+
+            Respawner = await Respawner.CreateAsync(conn, new RespawnerOptions
+            {
+                TablesToIgnore = new[] { new Table("__EFMigrationsHistory") }
+            });
         }
-        public void Dispose()
+
+        public async Task ResetAsync()
         {
-            Db.Database.EnsureDeleted();
+            using var conn = new SqlConnection(_connectionString);
+            await conn.OpenAsync();
+            await Respawner.ResetAsync(conn);
+        }
+
+        public Task DisposeAsync()
+        {
             Db.Dispose();
+            return Task.CompletedTask;
         }
     }
 }

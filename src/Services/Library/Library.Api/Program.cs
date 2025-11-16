@@ -22,7 +22,7 @@ else
 {
     // For WebApplicationFactory override (no provider here)
     builder.Services.AddDbContext<LibraryDbContext>(options =>
-        options.UseInMemoryDatabase("TestDb"));
+        options.UseInMemoryDatabase("FunctionalTestDb"));
 }
 
 

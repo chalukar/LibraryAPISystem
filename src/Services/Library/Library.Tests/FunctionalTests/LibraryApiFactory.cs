@@ -14,23 +14,19 @@ namespace Library.Tests.FunctionalTests
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
             builder.UseEnvironment("Testing");
-            
+
             builder.ConfigureServices(services =>
             {
-                var descriptors = services.Where(d =>
-                    d.ServiceType == typeof(DbContextOptions<LibraryDbContext>) ||
-                    d.ServiceType == typeof(LibraryDbContext) ||
-                    (d.ServiceType.IsGenericType && d.ServiceType.GetGenericTypeDefinition() == typeof(DbContextOptions<>))).ToList();
+                // Remove SQL Server DbContextOptions
+                var descriptor = services.FirstOrDefault(
+                    s => s.ServiceType == typeof(DbContextOptions<LibraryDbContext>));
 
-                foreach (var descriptor in descriptors)
-                {
+                if (descriptor != null)
                     services.Remove(descriptor);
-                }
 
+                // Add InMemory EF Core for functional tests
                 services.AddDbContext<LibraryDbContext>(options =>
-                {
-                    options.UseInMemoryDatabase("TestDb");
-                });
+                    options.UseInMemoryDatabase("FunctionalTestDb"));
             });
         }
     }

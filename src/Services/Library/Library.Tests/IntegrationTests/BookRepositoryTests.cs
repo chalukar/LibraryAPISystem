@@ -10,7 +10,8 @@ using System.Threading.Tasks;
 
 namespace Library.Tests.IntegrationTests
 {
-    public class BookRepositoryTests : IClassFixture<DatabaseFixture>
+    [Collection("Database collection")]
+    public class BookRepositoryTests
     {
         private readonly DatabaseFixture _fixture;
 
@@ -22,13 +23,16 @@ namespace Library.Tests.IntegrationTests
         [Fact]
         public async Task Add_ShouldInsertBook()
         {
+            // Ensure we start from a clean database state
+            await _fixture.ResetAsync();
+
             var repo = new BookRepository(_fixture.Db);
             var book = new Book("Pro C# 10", "Andrew Troelsen, Philip Japikse", "9781484278680", 1353, 5);
 
             await repo.AddAsync(book, default);
-            await _fixture.Db.SaveChangesAsync();
+            var count = await _fixture.Db.Books.CountAsync();
+            count.Should().Be(1);
 
-            (await _fixture.Db.Books.CountAsync()).Should().Be(1);
         }
     }
 }
