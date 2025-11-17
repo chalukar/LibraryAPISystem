@@ -29,13 +29,13 @@ jobs:
           echo "ConnectionStrings__IntegrationTestDb=Server=(localdb)\LibraryTest;Database=LibraryDb_Test;Trusted_Connection=True;" >> $env:GITHUB_ENV
 
       - name: Restore dependencies
-        run: dotnet restore
+        run: dotnet restore src/library-api-system.sln
 
       - name: Build solution
-        run: dotnet build --no-restore --configuration Release
+        run: dotnet build src/library-api-system.sln
 
       - name: Run all tests with coverage
-        run: dotnet test --no-build --configuration Release --collect:"XPlat Code Coverage"
+        run: dotnet test src/library-api-system.sln
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
