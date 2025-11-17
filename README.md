@@ -1,6 +1,6 @@
 ## Library API System
 
-A sample modular .NET 9 solution demonstrating a small library domain with REST APIs, gRPC services, CQRS + MediatR, EF Core, and a full automated test suite (unit, integration, functional, and system tests).
+A sample modular .NET 9 solution demonstrating a small library domain with Domain-Driven Design (DDD), REST APIs, gRPC services, CQRS + MediatR, EF Core, and a full automated test suite (unit, integration, functional, and system tests).
 
 ---
 
